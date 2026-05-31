@@ -1,20 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { joinWaitlist } from "@/app/actions/waitlist";
 
 export default function EmailForm() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
     setError("");
-    setSubmitted(true);
+    setLoading(true);
+    const result = await joinWaitlist(email);
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setSubmitted(true);
+    }
   }
 
   if (submitted) {
@@ -39,16 +44,20 @@ export default function EmailForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your email address"
           aria-label="Email address"
+          disabled={loading}
           className="flex-1 bg-transparent border border-navy/30 text-navy placeholder-navy/40
                      px-4 py-3 text-sm font-body tracking-wide
-                     focus:outline-none focus:border-navy transition-colors"
+                     focus:outline-none focus:border-navy transition-colors
+                     disabled:opacity-50"
         />
         <button
           type="submit"
+          disabled={loading}
           className="bg-navy text-offwhite font-body text-sm tracking-widest uppercase
-                     px-6 py-3 hover:bg-navy-light transition-colors cursor-pointer"
+                     px-6 py-3 hover:bg-navy-light transition-colors cursor-pointer
+                     disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Join
+          {loading ? "..." : "Join"}
         </button>
       </div>
       {error && (
